@@ -1,6 +1,6 @@
 plugins {
-	kotlin("jvm") version "1.9.20" apply false
-	id("nebula.release") version "17.2.2"
+	kotlin("jvm") version "2.0.0" apply false
+	id("nebula.release") version "19.0.8"
 }
 
 subprojects {
