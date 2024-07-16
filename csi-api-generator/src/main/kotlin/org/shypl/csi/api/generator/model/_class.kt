@@ -124,7 +124,7 @@ class ClassName(
 	}
 	
 	override fun equals(other: Any?): Boolean {
-		return super.equals(other) && other is ClassName
+		return super.equals(other) && other is ClassName && pkg == other.pkg
 	}
 	
 	override fun hashCode(): Int {
