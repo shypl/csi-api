@@ -4,7 +4,7 @@ import org.shypl.csi.core.Connection
 
 abstract class AbstractOuterApi(protected val connection: Connection) : OuterApi {
 	override fun closeConnection() {
-		connection.closeDueError()
+		connection.close()
 	}
 	
 	override fun closeConnectionDueError() {

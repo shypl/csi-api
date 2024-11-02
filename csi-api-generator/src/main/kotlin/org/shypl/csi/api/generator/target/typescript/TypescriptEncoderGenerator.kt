@@ -121,7 +121,7 @@ class TypescriptEncoderGenerator(
 			line("w.writeInt(${entity.id})")
 		}
 		
-		entity.fields.forEach { field ->
+		model.getStructureEntityAllFields(entity).forEach { field ->
 			line("w." + writeCalls.visit(field.type, code, "v.${field.name}"))
 		}
 	}

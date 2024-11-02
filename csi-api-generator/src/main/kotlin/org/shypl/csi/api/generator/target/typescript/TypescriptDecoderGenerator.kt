@@ -128,8 +128,9 @@ class TypescriptDecoderGenerator(
 	private fun Code.writeStructureEntityDecode(entity: StructureEntity, code: Code) {
 		val type = model.getEntityType(entity.name)
 		identBracketsRound("return new " + type.accept(typeNames, code)) {
-			val last = entity.fields.size - 1
-			entity.fields.forEachIndexed { i, field ->
+			val fields = model.getStructureEntityAllFields(entity)
+			val last = fields.size - 1
+			fields.forEachIndexed { i, field ->
 				line("r." + field.type.accept(readCalls, code) + (if (i == last) "" else ","))
 			}
 		}

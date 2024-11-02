@@ -62,6 +62,9 @@ class KotlinCodersGenerator(
 		types.forEach { it.accept(aggregator, allTypes) }
 		
 		val codeFile = source.newFile(target)
+		codeFile.header.line("@file:Suppress(\"MemberVisibilityCanBePrivate\")")
+		codeFile.header.line()
+		
 		val code = codeFile.body.identBracketsCurly((if (internal) "internal " else "") + "object " + target.value + " ")
 		
 		allTypes.forEach { it.accept(generator, code) }

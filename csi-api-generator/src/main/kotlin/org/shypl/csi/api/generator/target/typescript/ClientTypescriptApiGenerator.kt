@@ -989,7 +989,8 @@ class ClientTypescriptApiGenerator(
 		
 		private fun Code.visitStructureEntity0(entity: StructureEntity, data: GenerateLoggingVisitorData) {
 			line("lb.log('{')")
-			entity.fields.forEachIndexed { i, f ->
+			val allFields = model.getStructureEntityAllFields(entity)
+			allFields.forEachIndexed { i, f ->
 				logCall(data.loggers, entity.fields.lastIndex == i, f.type, f.name, "v.${f.name}")
 			}
 			line("lb.log('}')")

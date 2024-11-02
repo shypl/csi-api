@@ -5,6 +5,7 @@ import org.shypl.csi.api.generator.code.CodeStorage
 import org.shypl.csi.api.generator.code.DependedCode
 import org.shypl.csi.api.generator.model.ClassName
 import org.shypl.csi.api.generator.model.Model
+import org.shypl.csi.api.generator.model.StructureEntity
 import org.shypl.csi.api.generator.model.Type
 import org.shypl.csi.api.generator.model.TypeVisitor
 
@@ -29,6 +30,12 @@ abstract class AbstractCodersGenerator<C: CodeStorage>(
 		
 		override fun visitEntityType(type: Type.Entity, data: MutableSet<Type>) {
 			data.add(type)
+			val entity = model.getEntity(type.className)
+			if (entity is StructureEntity) {
+				model.getStructureEntityAllFields(entity).forEach {
+					it.type.accept(this, data)
+				}
+			}
 		}
 		
 		override fun visitListType(type: Type.List, data: MutableSet<Type>) {
