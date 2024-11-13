@@ -1,13 +1,13 @@
 plugins {
-	kotlin("jvm") version "2.0.0" apply false
-	id("nebula.release") version "19.0.8"
+	kotlin("jvm") version "2.0.21" apply false
+	id("nebula.release") version "19.0.10"
 }
 
 subprojects {
 	afterEvaluate {
 		
 		extensions.findByType<org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension>()?.apply {
-			jvmToolchain(17)
+			jvmToolchain(21)
 			
 			repositories {
 				mavenCentral()
