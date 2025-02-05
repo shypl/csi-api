@@ -1,12 +1,12 @@
 [versions]
-csi-core = "1.0.0-SNAPSHOT"
+csi-core = "1.0.0"
 
 [libraries]
-shypl-tool-lang = "org.shypl.tool:tool-lang:1.0.0-SNAPSHOT"
-shypl-tool-logging = { module = "org.shypl.tool:tool-logging", version = "1.0.0-SNAPSHOT"}
-shypl-tool-utils = { module = "org.shypl.tool:tool-utils", version = "1.0.0-SNAPSHOT"}
-shypl-tool-io = { module = "org.shypl.tool:tool-io", version = "1.0.0-SNAPSHOT"}
-shypl-tool-biser = { module = "org.shypl.tool:tool-biser", version = "1.0.0-SNAPSHOT"}
+shypl-tool-lang = "org.shypl.tool:tool-lang:1.0.0"
+shypl-tool-logging = { module = "org.shypl.tool:tool-logging", version = "1.0.0"}
+shypl-tool-utils = { module = "org.shypl.tool:tool-utils", version = "1.0.0"}
+shypl-tool-io = { module = "org.shypl.tool:tool-io", version = "1.0.0"}
+shypl-tool-biser = { module = "org.shypl.tool:tool-biser", version = "1.0.0"}
 
 shypl-csi-core-common = {module = "org.shypl.csi:csi-core-common", version.ref = "csi-core"}
 shypl-csi-core-client = {module = "org.shypl.csi:csi-core-client", version.ref = "csi-core"}

@@ -1,5 +1,5 @@
 plugins {
-	kotlin("jvm") version "2.1.0" apply false
+	kotlin("jvm") version "2.1.10" apply false
 	id("nebula.release") version "19.0.10"
 }
 
@@ -11,18 +11,29 @@ subprojects {
 			
 			repositories {
 				mavenCentral()
-				mavenLocal()
+				maven("https://maven.pkg.github.com/shypl/packages").credentials {
+					username = ""
+					password = project.property("shypl.gpr.key") as String
+				}
 			}
 		}
 		
 		extensions.findByType<PublishingExtension>()?.apply {
 			group = "org.shypl.csi"
 			
+			configure<JavaPluginExtension> {
+				withSourcesJar()
+			}
 			publications.create<MavenPublication>("Library") {
 				from(components["java"])
 			}
-			configure<JavaPluginExtension> {
-				withSourcesJar()
+			repositories.maven("https://maven.pkg.github.com/shypl/packages").credentials {
+				username = project.property("shypl.gpr.user") as String
+				password = project.property("shypl.gpr.key") as String
+			}
+			rootProject.tasks["release"].apply {
+				dependsOn(tasks["assemble"])
+				finalizedBy(tasks["publish"])
 			}
 		}
 	}
