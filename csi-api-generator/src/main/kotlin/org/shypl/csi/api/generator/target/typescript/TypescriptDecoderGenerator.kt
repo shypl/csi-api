@@ -36,13 +36,19 @@ class TypescriptDecoderGenerator(
 	
 	override fun visitListType(type: Type.List, data: Code) {
 		writeDeclaration(type, data) {
-			line(type.accept(readCalls, data))
+			line {
+				append("return r.")
+				append(type.accept(readCalls, data))
+			}
 		}
 	}
 	
 	override fun visitMapType(type: Type.Map, data: Code) {
 		writeDeclaration(type, data) {
-			line(type.accept(readCalls, data))
+			line {
+				append("return r.")
+				append(type.accept(readCalls, data))
+			}
 		}
 	}
 	
