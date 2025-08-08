@@ -32,14 +32,14 @@ abstract class KotlinApiGenerator(
 		generateApiConnection(codeSource, innerApi)
 		
 		innerApi.services
-			.fold(hashSetOf<ServiceDescriptor>()) { a, it -> collectServiceDescriptors(a, it.descriptor) }
+			.fold(hashSetOf<ServiceDescriptor>()) { a, it -> collectServiceDescriptors(a, it.className) }
 			.forEach { s ->
 				s.methods.forEach { m -> if (m.arguments.any { it is Method.Argument.Subscription }) generateOuterSubscription(codeSource, s, m, loggers) }
 				generateInnerService(codeSource, s, loggers)
 			}
 		
 		outerApi.services
-			.fold(hashSetOf<ServiceDescriptor>()) { a, it -> collectServiceDescriptors(a, it.descriptor) }
+			.fold(hashSetOf<ServiceDescriptor>()) { a, it -> collectServiceDescriptors(a, it.className) }
 			.forEach { s ->
 				s.methods.forEach { m -> if (m.arguments.any { it is Method.Argument.Subscription }) generateInnerSubscription(codeSource, s, m, loggers) }
 				generateOuterService(codeSource, s, loggers)
@@ -60,14 +60,14 @@ abstract class KotlinApiGenerator(
 		val descriptor = model.getServiceDescriptor(name)
 		if (target.add(descriptor)) {
 			descriptor.methods.forEach { m ->
-				(m.result as? Method.Result.Service)?.also { collectServiceDescriptors(target, it.descriptor) }
+				(m.result as? Method.Result.Service)?.also { collectServiceDescriptors(target, it.className) }
 			}
 		}
 		return target
 	}
 	
 	private fun generateInnerApi(codeSource: KotlinCodeStorage, api: Api) {
-		val name = "Internal${api.name.value}"
+		val name = "Internal${api.name.fullValue}"
 		
 		codeSource.newFile(sidePackage.getName(name)).apply {
 			addDependency("org.shypl.csi.api.$side/InnerApi")
@@ -78,7 +78,7 @@ abstract class KotlinApiGenerator(
 	}
 	
 	private fun generateOuterApi(codeSource: KotlinCodeStorage, api: Api) {
-		val name = "Internal${api.name.value}"
+		val name = "Internal${api.name.fullValue}"
 		
 		codeSource.newFile(sidePackage.getName(name)).apply {
 			addDependency("org.shypl.csi.api/OuterApi")
@@ -89,7 +89,7 @@ abstract class KotlinApiGenerator(
 	}
 	
 	private fun generateOuterApiImpl(codeSource: KotlinCodeStorage, api: Api) {
-		val name = "Internal${api.name.value}Impl"
+		val name = "Internal${api.name.fullValue}Impl"
 		
 		codeSource.newFile(sidePackage.getName(name)).apply {
 			addDependency("org.shypl.csi.api/AbstractOuterApi")
@@ -100,10 +100,10 @@ abstract class KotlinApiGenerator(
 				ident {
 					line("context: Context")
 				}
-				identBracketsCurly("): AbstractOuterApi(context.connection), Internal${api.name.value} ") {
+				identBracketsCurly("): AbstractOuterApi(context.connection), Internal${api.name.fullValue} ") {
 					api.services.sortedBy(Service::id).forEach {
-						addDependency(it.descriptor)
-						line("override val ${it.name}: ${it.descriptor.value} = ${it.descriptor.value}Outer(context, false, ${it.id}, \"${it.name}\")")
+						addDependency(it.className)
+						line("override val ${it.name}: ${it.className.value} = ${it.className.value}Outer(context, false, ${it.id}, \"${it.name}\")")
 					}
 				}
 			}
@@ -121,8 +121,8 @@ abstract class KotlinApiGenerator(
 			addDependency("org.shypl.tool.io/ByteBuffer")
 			addDependency("org.shypl.tool.utils.pool/ObjectPool")
 			
-			val iaName = "Internal" + innerApi.name.value
-			val oaName = "Internal" + outerApi.name.value
+			val iaName = "Internal" + innerApi.name.fullValue
+			val oaName = "Internal" + outerApi.name.fullValue
 			
 			generateApiAdapterDeclaration(body, iaName, oaName).apply {
 				line()
@@ -142,7 +142,7 @@ abstract class KotlinApiGenerator(
 				
 				line()
 				identBracketsCurly("override fun provideCallbacksRegistry(): CallbacksRegistry ") {
-					if (outerApi.services.any { s -> model.getServiceDescriptor(s.descriptor).methods.any { it.result != null } }) {
+					if (outerApi.services.any { s -> model.getServiceDescriptor(s.className).methods.any { it.result != null } }) {
 						addDependency("org.shypl.csi.api/RealCallbacksRegistry")
 						line("return RealCallbacksRegistry()")
 					}
@@ -157,7 +157,7 @@ abstract class KotlinApiGenerator(
 	}
 	
 	private fun generateApiConnection(codeSource: KotlinCodeStorage, api: Api) {
-		val iaInternalName = "Internal${api.name.value}"
+		val iaInternalName = "Internal${api.name.fullValue}"
 		
 		codeSource.newFile(sidePackage.getName("ApiConnection")).apply {
 			addDependency("org.shypl.csi.api/Context")
@@ -181,7 +181,7 @@ abstract class KotlinApiGenerator(
 					}
 					else {
 						services.forEach {
-							line("private val ${it.name}Delegate = ${it.descriptor.value}InnerDelegate(context, api.${it.name}, \"${it.name}\")")
+							line("private val ${it.name}Delegate = ${it.className.toString('_')}InnerDelegate(context, api.${it.name}, \"${it.name}\")")
 						}
 						
 						line()
@@ -199,34 +199,34 @@ abstract class KotlinApiGenerator(
 		}
 	}
 	
-	private fun generateInnerService(codeSource: KotlinCodeStorage, descriptor: ServiceDescriptor, loggers: TypeCollector) {
-		val name = "${descriptor.name.value}InnerDelegate"
+	private fun generateInnerService(codeSource: KotlinCodeStorage, serviceDescriptor: ServiceDescriptor, loggers: TypeCollector) {
+		val name = "${serviceDescriptor.name.fullValue}InnerDelegate"
 		
 		codeSource.newFile(sidePackage.getName(name)).apply {
 			addDependency("org.shypl.csi.api/Context")
 			addDependency("org.shypl.tool.biser/BiserReader")
-			addDependency(descriptor.name)
+			addDependency(serviceDescriptor.name)
 			
 			body.apply {
 				line("@Suppress(\"FunctionName\", \"UNUSED_PARAMETER\")")
 				line("internal class $name(")
 				ident {
 					line("context: Context,")
-					line("service: ${descriptor.name.value},")
+					line("service: ${serviceDescriptor.name.toString('.')},")
 					line("name: String")
 				}
 				
-				val delegate = if (descriptor.closeable) "InnerInstanceServiceDelegate" else "InnerServiceDelegate"
+				val delegate = if (serviceDescriptor.closeable) "InnerInstanceServiceDelegate" else "InnerServiceDelegate"
 				
 				addDependency("org.shypl.csi.api/$delegate")
 				
-				identBracketsCurly(") : $delegate<${descriptor.name.value}>(context, service, name) ") {
+				identBracketsCurly(") : $delegate<${serviceDescriptor.name.toString('.')}>(context, service, name) ") {
 					
 					line()
 					
 					identBracketsCurly("override fun callMethod(methodId: Int, message: BiserReader): Boolean ") {
 						identBracketsCurly("when (methodId) ") {
-							descriptor.methods.sortedBy(Method::id).forEach {
+							serviceDescriptor.methods.sortedBy(Method::id).forEach {
 								line("${it.id} -> call_${it.name}(message)")
 							}
 							line("else -> return false")
@@ -234,7 +234,7 @@ abstract class KotlinApiGenerator(
 						line("return true")
 					}
 					
-					descriptor.methods.sortedBy(Method::id).forEach { m ->
+					serviceDescriptor.methods.sortedBy(Method::id).forEach { m ->
 						line()
 						identBracketsCurly("private fun call_${m.name}(message: BiserReader) ") {
 							val result = m.result
@@ -296,7 +296,7 @@ abstract class KotlinApiGenerator(
 									is Method.Result.Service   -> {
 										val hasSubscription = arguments.any { it is Method.Argument.Subscription }
 										if (hasSubscription) {
-											line("val ss = ${descriptor.name.value}_${m.name}_OuterSubscription(context, this@${name})")
+											line("val ss = ${serviceDescriptor.name.fullValue}_${m.name}_OuterSubscription(context, this@${name})")
 										}
 										line {
 											append("val i = service.${m.name}(")
@@ -309,7 +309,7 @@ abstract class KotlinApiGenerator(
 											}
 											append(")")
 										}
-										line("val s = registerInstanceService(${result.descriptor.value}InnerDelegate(context, i, \"\$name.${m.name}\"))")
+										line("val s = registerInstanceService(${result.className.fullValue}InnerDelegate(context, i, \"\$name.${m.name}\"))")
 										if (hasSubscription) {
 											addDependency("org.shypl.tool.utils/DummyCloseable")
 											line("val ssi = registerSubscription(ss, DummyCloseable)")
@@ -325,7 +325,7 @@ abstract class KotlinApiGenerator(
 									}
 									
 									Method.Result.Subscription -> {
-										line("val s = ${descriptor.name.value}_${m.name}_OuterSubscription(context, this@${name})")
+										line("val s = ${serviceDescriptor.name.fullValue}_${m.name}_OuterSubscription(context, this@${name})")
 										line {
 											append("val e = service.${m.name}(")
 											arguments.forEachIndexed { i, a ->
@@ -354,7 +354,7 @@ abstract class KotlinApiGenerator(
 	}
 	
 	private fun generateOuterService(codeSource: KotlinCodeStorage, descriptor: ServiceDescriptor, loggers: TypeCollector) {
-		val name = descriptor.name.value
+		val name = descriptor.name.fullValue
 		
 		codeSource.newFile(sidePackage.getName("${name}Outer")).apply {
 			addDependency(descriptor.name)
@@ -392,8 +392,8 @@ abstract class KotlinApiGenerator(
 								when (it) {
 									is Method.Result.Value     -> append(coders.getTypeName(it.type, this@identBracketsCurly))
 									is Method.Result.Service   -> {
-										addDependency(it.descriptor)
-										append(it.descriptor.value)
+										addDependency(it.className)
+										append(it.className.value)
 									}
 									
 									Method.Result.Subscription -> {
@@ -432,7 +432,7 @@ abstract class KotlinApiGenerator(
 											
 											is Method.Result.Service   -> {
 												val hasSubscription = m.arguments.any { it is Method.Argument.Subscription }
-												addDependency(r.descriptor)
+												addDependency(r.className)
 												line("val _service = " + coders.provideReadCall(this, Type.Primitive.INT))
 												
 												if (hasSubscription) {
@@ -443,7 +443,7 @@ abstract class KotlinApiGenerator(
 													line("_logInstanceOpen(\"${m.name}\", _callbackLocal, _service) ")
 												}
 												
-												line("val _si = ${r.descriptor.value}Outer(_context, true, _service, \"\$_name.${m.name}[+\$_service]\")")
+												line("val _si = ${r.className.fullValue}Outer(_context, true, _service, \"\$_name.${m.name}[+\$_service]\")")
 												
 												if (hasSubscription) {
 													line {
@@ -514,7 +514,7 @@ abstract class KotlinApiGenerator(
 	}
 	
 	private fun generateInnerSubscription(codeSource: KotlinCodeStorage, service: ServiceDescriptor, method: Method, loggers: TypeAggregator) {
-		val name = "${service.name.value}_${method.name}_InnerSubscription"
+		val name = "${service.name.fullValue}_${method.name}_InnerSubscription"
 		val arguments = method.arguments.filterIsInstance<Method.Argument.Subscription>()
 		codeSource.newFile(sidePackage.getName(name)).apply {
 			addDependency("org.shypl.csi.api/Context")
@@ -589,7 +589,7 @@ abstract class KotlinApiGenerator(
 	}
 	
 	private fun generateOuterSubscription(codeSource: KotlinCodeStorage, service: ServiceDescriptor, method: Method, loggers: TypeAggregator) {
-		val name = "${service.name.value}_${method.name}_OuterSubscription"
+		val name = "${service.name.fullValue}_${method.name}_OuterSubscription"
 		val arguments = method.arguments.filterIsInstance<Method.Argument.Subscription>()
 		codeSource.newFile(sidePackage.getName(name)).apply {
 			addDependency("org.shypl.csi.api/Context")
@@ -862,7 +862,7 @@ abstract class KotlinApiGenerator(
 		
 		override fun visitConstantEntity(entity: ConstantEntity, data: GenerateLoggingVisitorData) {
 			data.code.addDependency("org.shypl.csi.api/log")
-			data.code.line("log(\"${entity.name.value}\")")
+			data.code.line("log(\"${entity.name.fullValue}\")")
 		}
 	}
 	

@@ -34,7 +34,7 @@ class Api : Compatible() {
 				reduceCompatibility(Compatibility.ABSENT)
 			}
 			else {
-				service.descriptor = descriptor
+				service.className = descriptor
 			}
 		}
 		else {

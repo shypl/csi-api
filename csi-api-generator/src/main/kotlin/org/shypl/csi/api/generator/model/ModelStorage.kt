@@ -34,7 +34,7 @@ class ModelStorage(
 				ModelUniform.Api.Service(
 					it.id,
 					it.name,
-					it.descriptor.full
+					it.className.full
 				)
 			)
 		}
@@ -65,7 +65,7 @@ class ModelStorage(
 							when (r) {
 								null                       -> null
 								is Method.Result.Value     -> r.type.name
-								is Method.Result.Service   -> "@" + r.descriptor.full
+								is Method.Result.Service   -> "@" + r.className.full
 								Method.Result.Subscription -> "@"
 							}
 						}

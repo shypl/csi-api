@@ -29,7 +29,7 @@ class TypescriptTypeNameVisitor(private val libPackage: ClassPackage) : TypeVisi
 	
 	override fun visitEntityType(type: Type.Entity, data: DependedCode): String {
 		data.addDependency(type.className)
-		return type.className.toString('_')
+		return type.className.fullValue
 	}
 	
 	override fun visitListType(type: Type.List, data: DependedCode): String {

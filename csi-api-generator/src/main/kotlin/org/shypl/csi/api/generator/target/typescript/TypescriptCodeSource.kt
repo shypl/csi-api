@@ -17,7 +17,7 @@ class TypescriptCodeSource(
 	private val srcPackageCut = srcPackage.replace('.', '/') + '/'
 	
 	override fun defineClassFilePath(name: ClassName): Path {
-		val path = "${name.pkg.toString('/')}/${name.toString('_')}.ts"
+		val path = "${name.pkg.toString('/')}/${name.fullValue}.ts"
 		
 		if (path.startsWith(srcPackageCut)) {
 			return genPath.resolve(path.substring(srcPackageCut.length))
@@ -38,7 +38,7 @@ class TypescriptCodeSource(
 					val aliases = it.aliases.toMutableList()
 					val dependencyName = it.name
 					if (aliases.isEmpty()) {
-						aliases.add(dependencyName.toString('_'))
+						aliases.add(dependencyName.fullValue)
 					}
 					aliases.sort()
 					

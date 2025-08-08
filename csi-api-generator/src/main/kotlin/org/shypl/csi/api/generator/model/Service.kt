@@ -3,10 +3,10 @@ package org.shypl.csi.api.generator.model
 class Service(
 	val id: Int,
 	val name: String,
-	descriptor: ClassName
+	className: ClassName
 ) : Compatible() {
 	
-	var descriptor = descriptor
+	var className = className
 		set(value) {
 			if (field != value) {
 				field = value

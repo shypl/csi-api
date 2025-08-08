@@ -32,6 +32,8 @@ abstract class ClassPath<P : ClassPath<P>>(
 		return true
 	}
 	
+	val fullValue: String get() = toString('_')
+	
 	open fun toString(separator: Char): String {
 		return if (parent == null) value
 		else parent.toString(separator) + separator + value

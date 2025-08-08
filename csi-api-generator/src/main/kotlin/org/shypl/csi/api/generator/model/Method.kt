@@ -48,6 +48,6 @@ class Method(
 		
 		data object Subscription : Result
 		
-		data class Service(val descriptor: ClassName) : Result
+		data class Service(val className: ClassName) : Result
 	}
 }

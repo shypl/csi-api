@@ -34,7 +34,7 @@ class ClientTypescriptApiGenerator(
 		val allServices = hashSetOf<ServiceDescriptor>()
 		
 		innerApi.services
-			.fold(hashSetOf<ServiceDescriptor>()) { a, it -> collectServiceDescriptors(a, it.descriptor) }
+			.fold(hashSetOf<ServiceDescriptor>()) { a, it -> collectServiceDescriptors(a, it.className) }
 			.forEach { s ->
 				allServices.add(s)
 				s.methods.forEach { m -> if (m.arguments.any { it is Method.Argument.Subscription }) generateOuterSubscription(codeStorage, s, m, loggers) }
@@ -42,7 +42,7 @@ class ClientTypescriptApiGenerator(
 			}
 		
 		outerApi.services
-			.fold(hashSetOf<ServiceDescriptor>()) { a, it -> collectServiceDescriptors(a, it.descriptor) }
+			.fold(hashSetOf<ServiceDescriptor>()) { a, it -> collectServiceDescriptors(a, it.className) }
 			.forEach { s ->
 				allServices.add(s)
 				s.methods.forEach { m -> if (m.arguments.any { it is Method.Argument.Subscription }) generateInnerSubscription(codeStorage, s, m, loggers) }
@@ -68,10 +68,10 @@ class ClientTypescriptApiGenerator(
 	
 	private fun generateSourceApi(codeStorage: CodeStorage, api: Api) {
 		codeStorage.newFile(api.name).apply {
-			body.identBracketsCurly("export interface ${api.name.value} ") {
+			body.identBracketsCurly("export interface ${api.name.fullValue} ") {
 				api.services.sortedBy(Service::id).forEach {
-					addDependency(it.descriptor)
-					line("readonly ${it.name}: ${it.descriptor.value}")
+					addDependency(it.className)
+					line("readonly ${it.name}: ${it.className.fullValue}")
 				}
 			}
 		}
@@ -85,7 +85,7 @@ class ClientTypescriptApiGenerator(
 				"extends Closeable "
 			} else ""
 			
-			body.identBracketsCurly("export interface ${descriptor.name.value} $closeable") {
+			body.identBracketsCurly("export interface ${descriptor.name.fullValue} $closeable") {
 				descriptor.methods.forEach { m ->
 					line {
 						append("${m.name}(")
@@ -97,8 +97,8 @@ class ClientTypescriptApiGenerator(
 						when (val r = m.result) {
 							is Method.Result.Value     -> append("Promise<${coders.getTypeName(r.type, this@identBracketsCurly)}>")
 							is Method.Result.Service   -> {
-								addDependency(r.descriptor)
-								append("Promise<${r.descriptor.value}>")
+								addDependency(r.className)
+								append("Promise<${r.className.fullValue}>")
 							}
 							
 							Method.Result.Subscription -> {
@@ -119,36 +119,36 @@ class ClientTypescriptApiGenerator(
 		val descriptor = model.getServiceDescriptor(descriptorName)
 		if (target.add(descriptor)) {
 			descriptor.methods.forEach { m ->
-				(m.result as? Method.Result.Service)?.also { collectServiceDescriptors(target, it.descriptor) }
+				(m.result as? Method.Result.Service)?.also { collectServiceDescriptors(target, it.className) }
 			}
 		}
 		return target
 	}
 	
 	private fun generateInnerApi(codeStorage: CodeStorage, api: Api) {
-		val name = "Internal${api.name.value}"
+		val name = "Internal${api.name.fullValue}"
 		
 		codeStorage.newFile(internalPackage.getName(name)).apply {
 			addDependency(libPackage.getName("csi.api.client/InnerApi"))
 			addDependency(api.name)
 			
-			body.line("export interface $name extends ${api.name.value}, InnerApi {}")
+			body.line("export interface $name extends ${api.name.fullValue}, InnerApi {}")
 		}
 	}
 	
 	private fun generateOuterApi(codeStorage: CodeStorage, api: Api) {
-		val name = "Internal${api.name.value}"
+		val name = "Internal${api.name.fullValue}"
 		
 		codeStorage.newFile(internalPackage.getName(name)).apply {
 			addDependency(libPackage.getName("csi.api/OuterApi"))
 			addDependency(api.name)
 			
-			body.line("export interface $name extends ${api.name.value}, OuterApi {}")
+			body.line("export interface $name extends ${api.name.fullValue}, OuterApi {}")
 		}
 	}
 	
 	private fun generateOuterApiImpl(codeStorage: CodeStorage, api: Api) {
-		val name = "Internal${api.name.value}Impl"
+		val name = "Internal${api.name.fullValue}Impl"
 		
 		codeStorage.newFile(internalPackage.getName(name)).apply {
 			addDependency(libPackage.getName("csi.api/AbstractOuterApi"))
@@ -156,20 +156,20 @@ class ClientTypescriptApiGenerator(
 			addDependency(internalPackage.getName("InternalServerApi"))
 			
 			body.apply {
-				identBracketsCurly("export class $name extends AbstractOuterApi implements Internal${api.name.value}") {
+				identBracketsCurly("export class $name extends AbstractOuterApi implements Internal${api.name.fullValue}") {
 					val services = api.services.sortedBy(Service::id)
 					
 					services.forEach {
-						addDependency(it.descriptor)
-						line("readonly ${it.name}: ${it.descriptor.value}")
+						addDependency(it.className)
+						line("readonly ${it.name}: ${it.className.fullValue}")
 					}
 					line()
 					identBracketsCurly("constructor(context: Context) ") {
 						line("super(context.connection)")
 						
 						services.forEach {
-							addDependency(internalPackage.getName("${it.descriptor.value}Outer"))
-							line("this.${it.name} = new ${it.descriptor.value}Outer(context, false, ${it.id}, \"${it.name}\")")
+							addDependency(internalPackage.getName("${it.className.fullValue}Outer"))
+							line("this.${it.name} = new ${it.className.fullValue}Outer(context, false, ${it.id}, \"${it.name}\")")
 						}
 					}
 				}
@@ -187,8 +187,8 @@ class ClientTypescriptApiGenerator(
 			addDependency(libPackage.getName("tool.io/ByteBuffer"))
 			addDependency(libPackage.getName("tool.utils.pool/ObjectPool"))
 			
-			val iaName = "Internal" + innerApi.name.value
-			val oaName = "Internal" + outerApi.name.value
+			val iaName = "Internal" + innerApi.name.fullValue
+			val oaName = "Internal" + outerApi.name.fullValue
 			
 			addDependency(internalPackage.getName(iaName))
 			addDependency(internalPackage.getName(oaName))
@@ -214,7 +214,7 @@ class ClientTypescriptApiGenerator(
 				
 				line()
 				identBracketsCurly("provideCallbacksRegistry(): CallbacksRegistry ") {
-					if (outerApi.services.any { s -> model.getServiceDescriptor(s.descriptor).methods.any { it.result != null } }) {
+					if (outerApi.services.any { s -> model.getServiceDescriptor(s.className).methods.any { it.result != null } }) {
 						addDependency(libPackage.getName("csi.api/RealCallbacksRegistry"))
 						line("return new RealCallbacksRegistry()")
 					}
@@ -244,7 +244,7 @@ class ClientTypescriptApiGenerator(
 	}
 	
 	private fun generateApiConnection(codeStorage: CodeStorage, api: Api) {
-		val iaInternalName = "Internal${api.name.value}"
+		val iaInternalName = "Internal${api.name.fullValue}"
 		
 		codeStorage.newFile(internalPackage.getName("ApiConnection")).apply {
 			addDependency(libPackage.getName("csi.api/Context"))
@@ -257,8 +257,8 @@ class ClientTypescriptApiGenerator(
 					
 					val services = api.services.sortedBy(Service::id)
 					services.forEach {
-						addDependency(internalPackage.getName("${it.descriptor.value}InnerDelegate"))
-						line("private readonly ${it.name}Delegate: ${it.descriptor.value}InnerDelegate")
+						addDependency(internalPackage.getName("${it.className.fullValue}InnerDelegate"))
+						line("private readonly ${it.name}Delegate: ${it.className.fullValue}InnerDelegate")
 					}
 					line()
 					
@@ -272,7 +272,7 @@ class ClientTypescriptApiGenerator(
 						line("super(context, api)")
 						
 						services.forEach {
-							line("this.${it.name}Delegate = new ${it.descriptor.value}InnerDelegate(context, api.${it.name}, \"${it.name}\")")
+							line("this.${it.name}Delegate = new ${it.className.fullValue}InnerDelegate(context, api.${it.name}, \"${it.name}\")")
 						}
 					}
 					line("}")
@@ -293,7 +293,7 @@ class ClientTypescriptApiGenerator(
 	}
 	
 	private fun generateInnerService(codeStorage: CodeStorage, descriptor: ServiceDescriptor, loggers: TypeCollector) {
-		val name = "${descriptor.name.value}InnerDelegate"
+		val name = "${descriptor.name.fullValue}InnerDelegate"
 		
 		codeStorage.newFile(internalPackage.getName(name)).apply {
 			addDependency(libPackage.getName("csi.api/Context"))
@@ -301,12 +301,12 @@ class ClientTypescriptApiGenerator(
 			addDependency(libPackage.getName("tool.biser/BiserReader"))
 			addDependency(descriptor.name)
 			
-			body.identBracketsCurly("export class $name extends InnerServiceDelegate<${descriptor.name.value}> ") {
+			body.identBracketsCurly("export class $name extends InnerServiceDelegate<${descriptor.name.fullValue}> ") {
 				
 				line("constructor(")
 				ident {
 					line("context: Context,")
-					line("service: ${descriptor.name.value},")
+					line("service: ${descriptor.name.fullValue},")
 					line("name: string")
 				}
 				line(") {")
@@ -393,7 +393,7 @@ class ClientTypescriptApiGenerator(
 							is Method.Result.Service   -> {
 								val hasSubscription = arguments.any { it is Method.Argument.Subscription }
 								if (hasSubscription) {
-									line("const ss = ${descriptor.name.value}_${m.name}_OuterSubscription(context, this@${name})")
+									line("const ss = ${descriptor.name.fullValue}_${m.name}_OuterSubscription(context, this@${name})")
 								}
 								
 								line {
@@ -408,7 +408,7 @@ class ClientTypescriptApiGenerator(
 									append(").then(i => {")
 								}
 								ident {
-									line("const s = this.registerInstanceService(i, ${result.descriptor.value}InnerDelegate(context, i.service, \"\$name.${m.name}\"))")
+									line("const s = this.registerInstanceService(i, ${result.className.fullValue}InnerDelegate(context, i.service, \"\$name.${m.name}\"))")
 									if (hasSubscription) {
 										addDependency(libPackage.getName("tool.utils/Closeable"))
 										line("const ssi = this.registerSubscription(ss, Closeable.DUMMY)")
@@ -425,7 +425,7 @@ class ClientTypescriptApiGenerator(
 							}
 							
 							Method.Result.Subscription -> {
-								line("const s = new ${descriptor.name.value}_${m.name}_OuterSubscription(context, this@${name})")
+								line("const s = new ${descriptor.name.fullValue}_${m.name}_OuterSubscription(context, this@${name})")
 								line {
 									append("this.service.${m.name}(")
 									arguments.forEachIndexed { i, a ->
@@ -454,7 +454,7 @@ class ClientTypescriptApiGenerator(
 	}
 	
 	private fun generateOuterService(codeStorage: CodeStorage, descriptor: ServiceDescriptor, loggers: TypeCollector) {
-		val name = descriptor.name.value
+		val name = descriptor.name.fullValue
 		
 		codeStorage.newFile(internalPackage.getName("${name}Outer")).apply {
 			addDependency(descriptor.name)
@@ -494,8 +494,8 @@ class ClientTypescriptApiGenerator(
 							when (it) {
 								is Method.Result.Value     -> append(coders.getTypeName(it.type, this@identBracketsCurly))
 								is Method.Result.Service   -> {
-									addDependency(it.descriptor)
-									append(it.descriptor.value)
+									addDependency(it.className)
+									append(it.className.fullValue)
 								}
 								
 								Method.Result.Subscription -> {
@@ -535,8 +535,8 @@ class ClientTypescriptApiGenerator(
 										
 										is Method.Result.Service   -> {
 											val hasSubscription = m.arguments.any { it is Method.Argument.Subscription }
-											addDependency(r.descriptor)
-											addDependency(internalPackage.getName("${r.descriptor.value}Outer"))
+											addDependency(r.className)
+											addDependency(internalPackage.getName("${r.className.fullValue}Outer"))
 											line("const _service = _reader." + coders.provideReadCall(this, Type.Primitive.INT))
 											
 											if (hasSubscription) {
@@ -547,7 +547,7 @@ class ClientTypescriptApiGenerator(
 												line("this._logInstanceOpen(\"${m.name}\", _callbackLocal, _service) ")
 											}
 											
-											line("const _si = new ${r.descriptor.value}Outer(this._context, true, _service, `\${this._name}.${m.name}[+\${_service}]`)")
+											line("const _si = new ${r.className.fullValue}Outer(this._context, true, _service, `\${this._name}.${m.name}[+\${_service}]`)")
 											if (hasSubscription) {
 												line {
 													addDependency(internalPackage.getName("${name}_${m.name}_InnerSubscription"))
@@ -628,7 +628,7 @@ class ClientTypescriptApiGenerator(
 	}
 	
 	private fun generateInnerSubscription(codeStorage: CodeStorage, service: ServiceDescriptor, method: Method, loggers: TypeAggregator) {
-		val name = "${service.name.value}_${method.name}_InnerSubscription"
+		val name = "${service.name.fullValue}_${method.name}_InnerSubscription"
 		val arguments = method.arguments.filterIsInstance<Method.Argument.Subscription>()
 		codeStorage.newFile(internalPackage.getName(name)).apply {
 			addDependency(libPackage.getName("csi.api/Context"))
@@ -710,7 +710,7 @@ class ClientTypescriptApiGenerator(
 	}
 	
 	private fun generateOuterSubscription(codeStorage: CodeStorage, service: ServiceDescriptor, method: Method, loggers: TypeAggregator) {
-		val name = "${service.name.value}_${method.name}_OuterSubscription"
+		val name = "${service.name.fullValue}_${method.name}_OuterSubscription"
 		val arguments = method.arguments.filterIsInstance<Method.Argument.Subscription>()
 		codeStorage.newFile(internalPackage.getName(name)).apply {
 			addDependency(libPackage.getName("csi.api/Context"))
@@ -997,7 +997,7 @@ class ClientTypescriptApiGenerator(
 		}
 		
 		override fun visitConstantEntity(entity: ConstantEntity, data: GenerateLoggingVisitorData) {
-			data.code.line("lb.log(\"${entity.name.value}\")")
+			data.code.line("lb.log(\"${entity.name.fullValue}\")")
 		}
 	}
 	
