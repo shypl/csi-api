@@ -13,6 +13,10 @@ class KotlinTypeNameVisitor : TypeVisitor<String, DependedCode> {
 			Type.Primitive.LONG          -> "Long"
 			Type.Primitive.DOUBLE        -> "Double"
 			Type.Primitive.STRING        -> "String"
+			Type.Primitive.DATE_TIME     -> {
+				data.addDependency("java.time.ZonedDateTime")
+				"ZonedDateTime"
+			}
 			Type.Primitive.BOOLEAN_ARRAY -> "BooleanArray"
 			Type.Primitive.BYTE_ARRAY    -> "ByteArray"
 			Type.Primitive.INT_ARRAY     -> "IntArray"
@@ -23,6 +27,7 @@ class KotlinTypeNameVisitor : TypeVisitor<String, DependedCode> {
 	
 	override fun visitEntityType(type: Type.Entity, data: DependedCode): String {
 		data.addDependency(type.name)
+		
 		return type.className.toString('.')
 	}
 	

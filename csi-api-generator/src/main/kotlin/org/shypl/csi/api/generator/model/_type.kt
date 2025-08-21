@@ -15,6 +15,7 @@ sealed interface Type {
 		LONG,
 		DOUBLE,
 		STRING,
+		DATE_TIME,
 		
 		BOOLEAN_ARRAY(true),
 		BYTE_ARRAY(true),

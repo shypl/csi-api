@@ -14,6 +14,7 @@ class DefaultWriteCallVisitor(private val encoderNaming: TypeVisitor<String, Dep
 			Type.Primitive.LONG          -> "writeLong("
 			Type.Primitive.DOUBLE        -> "writeDouble("
 			Type.Primitive.STRING        -> "writeString("
+			Type.Primitive.DATE_TIME     -> "writeDateTime("
 			Type.Primitive.BOOLEAN_ARRAY -> "writeBooleanArray("
 			Type.Primitive.BYTE_ARRAY    -> "writeByteArray("
 			Type.Primitive.INT_ARRAY     -> "writeIntArray("
@@ -35,10 +36,12 @@ class DefaultWriteCallVisitor(private val encoderNaming: TypeVisitor<String, Dep
 	}
 	
 	override fun visitNullableType(type: Type.Nullable, data: Data): String {
-		if (type.original == Type.Primitive.STRING) {
-			return "writeStringNullable(${data.value})"
+		return when (type.original) {
+			Type.Primitive.STRING    -> "writeStringNullable(${data.value})"
+			Type.Primitive.DATE_TIME -> "writeDateTimeNullable(${data.value})"
+			
+			else                     -> "write(${data.value}, ${type.accept(encoderNaming, data.code)})"
 		}
-		return "write(${data.value}, ${type.accept(encoderNaming, data.code)})"
 	}
 	
 	fun visit(type: Type, code: DependedCode, value: String): String {
@@ -48,6 +51,6 @@ class DefaultWriteCallVisitor(private val encoderNaming: TypeVisitor<String, Dep
 	
 	class Data(
 		val code: DependedCode,
-		val value: String
+		val value: String,
 	)
 }

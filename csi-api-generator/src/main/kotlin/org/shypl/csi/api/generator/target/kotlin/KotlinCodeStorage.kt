@@ -23,7 +23,7 @@ class KotlinCodeStorage(private val root: Path) : CodeStorage() {
 				.distinctBy { it.name.root }
 				.sortedBy { it.name.root.path.joinToString(".") }
 				.forEach {
-					builder.append("import ${it.name.root.path.joinToString(".")} ")
+					builder.append("import ${it.name.root.path.joinToString(".")}")
 					if (it.aliases.isNotEmpty()) {
 						builder.append(" as ${it.aliases.first()}")
 					}

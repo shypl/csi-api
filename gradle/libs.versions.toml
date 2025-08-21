@@ -6,10 +6,10 @@ shypl-tool-lang = "org.shypl.tool:tool-lang:1.0.0"
 shypl-tool-logging = { module = "org.shypl.tool:tool-logging", version = "1.0.0"}
 shypl-tool-utils = { module = "org.shypl.tool:tool-utils", version = "1.0.0"}
 shypl-tool-io = { module = "org.shypl.tool:tool-io", version = "1.0.0"}
-shypl-tool-biser = { module = "org.shypl.tool:tool-biser", version = "1.0.0"}
+shypl-tool-biser = { module = "org.shypl.tool:tool-biser", version = "1.2.0"}
 
 shypl-csi-core-common = {module = "org.shypl.csi:csi-core-common", version.ref = "csi-core"}
 shypl-csi-core-client = {module = "org.shypl.csi:csi-core-client", version.ref = "csi-core"}
 shypl-csi-core-server = {module = "org.shypl.csi:csi-core-server", version.ref = "csi-core"}
 
-coroutines = {module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.10.1"}
+coroutines = {module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.10.2"}

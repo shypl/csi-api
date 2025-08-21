@@ -108,7 +108,7 @@ class ClassName(
 		get() = "$pkg/$this"
 	
 	val root: ClassName
-		get() = parent ?: this
+		get() = parent?.root ?: this
 	
 	val rootPackage: ClassPackage
 		get() = pkg.root

@@ -19,6 +19,7 @@ class TypescriptTypeNameVisitor(private val libPackage: ClassPackage) : TypeVisi
 			
 			Type.Primitive.DOUBLE        -> "number"
 			Type.Primitive.STRING        -> "string"
+			Type.Primitive.DATE_TIME     -> "Date"
 			Type.Primitive.BOOLEAN_ARRAY -> "ReadonlyArray<boolean>"
 			Type.Primitive.BYTE_ARRAY    -> "Int8Array"
 			Type.Primitive.INT_ARRAY     -> "ReadonlyArray<number>"

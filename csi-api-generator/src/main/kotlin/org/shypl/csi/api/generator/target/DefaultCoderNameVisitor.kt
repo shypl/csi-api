@@ -15,6 +15,7 @@ class DefaultCoderNameVisitor(private val scope: CoderNameScopeVisitor) : TypeVi
 			Type.Primitive.LONG          -> "LONG"
 			Type.Primitive.DOUBLE        -> "DOUBLE"
 			Type.Primitive.STRING        -> "STRING"
+			Type.Primitive.DATE_TIME     -> "DATE_TIME"
 			Type.Primitive.BOOLEAN_ARRAY -> "BOOLEAN_ARRAY"
 			Type.Primitive.BYTE_ARRAY    -> "BYTE_ARRAY"
 			Type.Primitive.INT_ARRAY     -> "INT_ARRAY"

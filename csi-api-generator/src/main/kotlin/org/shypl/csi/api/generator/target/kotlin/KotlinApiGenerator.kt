@@ -523,7 +523,7 @@ abstract class KotlinApiGenerator(
 			addDependency("org.shypl.tool.biser/BiserReader")
 			
 			body.apply {
-				line("@Suppress(\"ClassName\")")
+				line("@Suppress(\"ClassName\",\"RedundantSuppression\")")
 				line("internal class $name(")
 				ident {
 					line("context: Context,")
@@ -597,7 +597,7 @@ abstract class KotlinApiGenerator(
 			addDependency("org.shypl.csi.api/OuterSubscription")
 			
 			body.apply {
-				line("@Suppress(\"ClassName\")")
+				line("@Suppress(\"ClassName\",\"RedundantSuppression\")")
 				line("internal class $name(")
 				ident {
 					line("context: Context,")

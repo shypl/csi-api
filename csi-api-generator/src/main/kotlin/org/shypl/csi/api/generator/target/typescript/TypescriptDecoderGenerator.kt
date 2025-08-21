@@ -53,7 +53,9 @@ class TypescriptDecoderGenerator(
 	}
 	
 	override fun visitNullableType(type: Type.Nullable, data: Code) {
-		if (type.original == Type.Primitive.STRING) {
+		if (type.original == Type.Primitive.STRING
+			|| type.original == Type.Primitive.DATE_TIME
+			) {
 			return
 		}
 		writeDeclaration(type, data) {

@@ -14,6 +14,7 @@ class DefaultReadCallVisitor(private val encoderNaming: TypeVisitor<String, Depe
 			Type.Primitive.LONG          -> "readLong()"
 			Type.Primitive.DOUBLE        -> "readDouble()"
 			Type.Primitive.STRING        -> "readString()"
+			Type.Primitive.DATE_TIME     -> "readDateTime()"
 			Type.Primitive.BOOLEAN_ARRAY -> "readBooleanArray()"
 			Type.Primitive.BYTE_ARRAY    -> "readByteArray()"
 			Type.Primitive.INT_ARRAY     -> "readIntArray()"
@@ -35,10 +36,12 @@ class DefaultReadCallVisitor(private val encoderNaming: TypeVisitor<String, Depe
 	}
 	
 	override fun visitNullableType(type: Type.Nullable, data: DependedCode): String {
-		if (type.original == Type.Primitive.STRING) {
-			return "readStringNullable()"
+		return when (type.original) {
+			Type.Primitive.STRING    -> "readStringNullable()"
+			Type.Primitive.DATE_TIME -> "readDateTimeNullable()"
+			
+			else                     -> "read(${type.accept(encoderNaming, data)})"
 		}
-		return "read(${type.accept(encoderNaming, data)})"
 	}
 	
 }

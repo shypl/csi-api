@@ -3,6 +3,7 @@ package org.shypl.csi.api.generator.model
 import org.reflections.Reflections
 import org.reflections.util.ConfigurationBuilder
 import java.io.Closeable
+import java.time.ZonedDateTime
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.KType
@@ -71,10 +72,10 @@ class KotlinModelLoader(
 				else {
 					Method.Result.Value(extractType(function.returnType))
 				}
-				
-				if (result != null) {
-					require(function.isSuspend) { "Method mast by suspend when it has result (${service.name.full}:${function.name})" }
-				}
+
+//				if (result != null) {
+//					require(function.isSuspend) { "Method mast by suspend when it has result (${service.name.full}:${function.name})" }
+//				}
 				
 				service.provideMethod(
 					function.name,
@@ -113,26 +114,27 @@ class KotlinModelLoader(
 	
 	private fun extractType(type: KType): Type {
 		val t = when (val clazz = type.jvmErasure) {
-			Boolean::class      -> Type.Primitive.BOOLEAN
-			Byte::class         -> Type.Primitive.BYTE
-			Int::class          -> Type.Primitive.INT
-			Long::class         -> Type.Primitive.LONG
-			Double::class       -> Type.Primitive.DOUBLE
-			String::class       -> Type.Primitive.STRING
-			BooleanArray::class -> Type.Primitive.BOOLEAN_ARRAY
-			ByteArray::class    -> Type.Primitive.BYTE_ARRAY
-			IntArray::class     -> Type.Primitive.INT_ARRAY
-			LongArray::class    -> Type.Primitive.LONG_ARRAY
-			DoubleArray::class  -> Type.Primitive.DOUBLE_ARRAY
+			Boolean::class       -> Type.Primitive.BOOLEAN
+			Byte::class          -> Type.Primitive.BYTE
+			Int::class           -> Type.Primitive.INT
+			Long::class          -> Type.Primitive.LONG
+			Double::class        -> Type.Primitive.DOUBLE
+			String::class        -> Type.Primitive.STRING
+			ZonedDateTime::class -> Type.Primitive.DATE_TIME
+			BooleanArray::class  -> Type.Primitive.BOOLEAN_ARRAY
+			ByteArray::class     -> Type.Primitive.BYTE_ARRAY
+			IntArray::class      -> Type.Primitive.INT_ARRAY
+			LongArray::class     -> Type.Primitive.LONG_ARRAY
+			DoubleArray::class   -> Type.Primitive.DOUBLE_ARRAY
 			
-			List::class         -> model.getListType(extractType(requireNotNull(type.arguments[0].type)))
+			List::class          -> model.getListType(extractType(requireNotNull(type.arguments[0].type)))
 			
-			Map::class          -> model.getMapType(
+			Map::class           -> model.getMapType(
 				extractType(requireNotNull(type.arguments[0].type)),
 				extractType(requireNotNull(type.arguments[1].type))
 			)
 			
-			else                -> model.getEntityType(loadEntity(clazz))
+			else                 -> model.getEntityType(loadEntity(clazz))
 		}
 		
 		if (type.isMarkedNullable) {
