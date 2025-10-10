@@ -13,7 +13,7 @@ class ClientTypescriptApiGenerator(
 	private val model: Model,
 	private val coders: TypescriptCodersGenerator,
 	private val libPackage: ClassPackage,
-	private val genPackage: ClassPackage,
+	genPackage: ClassPackage,
 ) {
 	private val internalPackage = genPackage.getChild("_internal")
 	
@@ -81,7 +81,7 @@ class ClientTypescriptApiGenerator(
 		codeStorage.newFile(descriptor.name).apply {
 			
 			val closeable = if (descriptor.closeable) {
-				addDependency(libPackage.getName("tool.utils/Closeable"))
+				addDependency(libPackage.getName("tool/Closeable"))
 				"extends Closeable "
 			} else ""
 			
@@ -102,7 +102,7 @@ class ClientTypescriptApiGenerator(
 							}
 							
 							Method.Result.Subscription -> {
-								addDependency(libPackage.getName("tool.utils/Closeable"))
+								addDependency(libPackage.getName("tool/Closeable"))
 								append("Promise<Closeable>")
 							}
 							
@@ -185,7 +185,7 @@ class ClientTypescriptApiGenerator(
 			addDependency(libPackage.getName("csi.api.client/ApiSluice"))
 			addDependency(libPackage.getName("csi.core.client/ConnectionHandler"))
 			addDependency(libPackage.getName("tool.io/ByteBuffer"))
-			addDependency(libPackage.getName("tool.utils.pool/ObjectPool"))
+			addDependency(libPackage.getName("tool.pool/ObjectPool"))
 			
 			val iaName = "Internal" + innerApi.name.fullValue
 			val oaName = "Internal" + outerApi.name.fullValue
@@ -410,7 +410,7 @@ class ClientTypescriptApiGenerator(
 								ident {
 									line("const s = this.registerInstanceService(i, ${result.className.fullValue}InnerDelegate(context, i.service, \"\$name.${m.name}\"))")
 									if (hasSubscription) {
-										addDependency(libPackage.getName("tool.utils/Closeable"))
+										addDependency(libPackage.getName("tool/Closeable"))
 										line("const ssi = this.registerSubscription(ss, Closeable.DUMMY)")
 										
 										line("this.logInstanceServiceSubscriptionResponse(\"${m.name}\", c, s, ssi) ")
@@ -499,7 +499,7 @@ class ClientTypescriptApiGenerator(
 								}
 								
 								Method.Result.Subscription -> {
-									addDependency(libPackage.getName("tool.utils/Closeable"))
+									addDependency(libPackage.getName("tool/Closeable"))
 									append("Closeable")
 								}
 							}
