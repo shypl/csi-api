@@ -1,15 +1,23 @@
 [versions]
 csi-core = "1.0.1"
+jackson = "2.21.0"
 
 [libraries]
 shypl-tool-lang = "org.shypl.tool:tool-lang:1.0.1"
-shypl-tool-logging = { module = "org.shypl.tool:tool-logging", version = "1.0.1"}
-shypl-tool-utils = { module = "org.shypl.tool:tool-utils", version = "1.2.2"}
-shypl-tool-io = { module = "org.shypl.tool:tool-io", version = "1.0.1"}
-shypl-tool-biser = { module = "org.shypl.tool:tool-biser", version = "1.2.1"}
+shypl-tool-logging = { module = "org.shypl.tool:tool-logging", version = "1.0.1" }
+shypl-tool-utils = { module = "org.shypl.tool:tool-utils", version = "1.2.2" }
+shypl-tool-io = { module = "org.shypl.tool:tool-io", version = "1.0.1" }
+shypl-tool-biser = { module = "org.shypl.tool:tool-biser", version = "1.2.1" }
 
-shypl-csi-core-common = {module = "org.shypl.csi:csi-core-common", version.ref = "csi-core"}
-shypl-csi-core-client = {module = "org.shypl.csi:csi-core-client", version.ref = "csi-core"}
-shypl-csi-core-server = {module = "org.shypl.csi:csi-core-server", version.ref = "csi-core"}
+shypl-csi-core-common = { module = "org.shypl.csi:csi-core-common", version.ref = "csi-core" }
+shypl-csi-core-client = { module = "org.shypl.csi:csi-core-client", version.ref = "csi-core" }
+shypl-csi-core-server = { module = "org.shypl.csi:csi-core-server", version.ref = "csi-core" }
 
-coroutines = {module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.10.2"}
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+jackson-dataformat-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson" }
+
+logback = { module = "ch.qos.logback:logback-classic", version = "1.5.25" }
+
+reflections = {module = "org.reflections:reflections", version = "0.10.2"}
+
+coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.10.2" }
