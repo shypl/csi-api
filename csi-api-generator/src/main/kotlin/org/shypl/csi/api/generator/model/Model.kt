@@ -217,7 +217,7 @@ class Model : Compatible() {
 	private inline fun <reified E : Entity> provideEntity(name: ClassName, create: () -> E, update: (E) -> Unit): E {
 		var entity = _entities[name]
 		if (entity != null) {
-			require(entity is E) { "Entity id $name already registered as ${entity!!::class.simpleName}" }
+			require(entity is E) { "Entity id $name already registered as ${entity::class.simpleName}" }
 			update(entity)
 		}
 		else {
