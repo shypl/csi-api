@@ -27,7 +27,15 @@ class DefaultWriteCallVisitor(private val encoderNaming: TypeVisitor<String, Dep
 		return "writeList(${data.value}, ${type.element.accept(encoderNaming, data.code)})"
 	}
 	
+	override fun visitMutableListType(type: Type.MutableList, data: Data): String {
+		return "writeList(${data.value}, ${type.element.accept(encoderNaming, data.code)})"
+	}
+	
 	override fun visitMapType(type: Type.Map, data: Data): String {
+		return "writeMap(${data.value}, ${type.key.accept(encoderNaming, data.code)}, ${type.value.accept(encoderNaming, data.code)})"
+	}
+	
+	override fun visitMutableMapType(type: Type.MutableMap, data: Data): String {
 		return "writeMap(${data.value}, ${type.key.accept(encoderNaming, data.code)}, ${type.value.accept(encoderNaming, data.code)})"
 	}
 	

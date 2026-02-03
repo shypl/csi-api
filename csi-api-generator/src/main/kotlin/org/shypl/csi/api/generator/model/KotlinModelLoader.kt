@@ -5,6 +5,7 @@ import org.reflections.util.ConfigurationBuilder
 import java.io.Closeable
 import java.time.ZonedDateTime
 import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KParameter
 import kotlin.reflect.KType
 import kotlin.reflect.full.declaredMemberFunctions
@@ -127,12 +128,25 @@ class KotlinModelLoader(
 			LongArray::class     -> Type.Primitive.LONG_ARRAY
 			DoubleArray::class   -> Type.Primitive.DOUBLE_ARRAY
 			
-			List::class          -> model.getListType(extractType(requireNotNull(type.arguments[0].type)))
-			
-			Map::class           -> model.getMapType(
-				extractType(requireNotNull(type.arguments[0].type)),
-				extractType(requireNotNull(type.arguments[1].type))
-			)
+			List::class          ->
+				if (clazz.qualifiedName == "kotlin.collections.MutableList") {
+					model.getMutableListType(extractType(requireNotNull(type.arguments[0].type)))
+				}
+				else {
+					model.getListType(extractType(requireNotNull(type.arguments[0].type)))
+				}
+	
+			Map::class           -> if (clazz.qualifiedName == "kotlin.collections.MutableMap") {
+				model.getMutableMapType(
+					extractType(requireNotNull(type.arguments[0].type)),
+					extractType(requireNotNull(type.arguments[1].type))
+				)
+			} else {
+				model.getMapType(
+					extractType(requireNotNull(type.arguments[0].type)),
+					extractType(requireNotNull(type.arguments[1].type))
+				)
+			}
 			
 			else                 -> model.getEntityType(loadEntity(clazz))
 		}
@@ -177,14 +191,15 @@ class KotlinModelLoader(
 		val abstract = clazz.isAbstract || clazz.isSealed
 		val sealed = clazz.isSealed
 		
-		val properties = clazz.declaredMemberProperties.map { it.name }
+		val properties = clazz.declaredMemberProperties.associate { it.name to (it is KMutableProperty<*>) }
 		
 		val fields = checkNotNull(clazz.primaryConstructor).valueParameters
-			.filter { it.name in properties }
+			.filter { properties.containsKey(it.name) }
 			.map {
 				StructureEntity.Field(
 					checkNotNull(it.name),
-					extractType(it.type)
+					extractType(it.type),
+					properties.getValue(it.name!!)
 				)
 			}
 		

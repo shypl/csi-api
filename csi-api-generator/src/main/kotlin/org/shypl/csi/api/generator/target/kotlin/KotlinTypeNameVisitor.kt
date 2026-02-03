@@ -14,7 +14,7 @@ class KotlinTypeNameVisitor : TypeVisitor<String, DependedCode> {
 			Type.Primitive.DOUBLE        -> "Double"
 			Type.Primitive.STRING        -> "String"
 			Type.Primitive.DATE_TIME     -> {
-				data.addDependency("java.time.ZonedDateTime")
+				data.addDependency("java.time/ZonedDateTime")
 				"ZonedDateTime"
 			}
 			Type.Primitive.BOOLEAN_ARRAY -> "BooleanArray"
@@ -35,8 +35,16 @@ class KotlinTypeNameVisitor : TypeVisitor<String, DependedCode> {
 		return "List<${type.element.accept(this, data)}>"
 	}
 	
+	override fun visitMutableListType(type: Type.MutableList, data: DependedCode): String {
+		return "MutableList<${type.element.accept(this, data)}>"
+	}
+	
 	override fun visitMapType(type: Type.Map, data: DependedCode): String {
 		return "Map<${type.key.accept(this, data)}, ${type.value.accept(this, data)}>"
+	}
+	
+	override fun visitMutableMapType(type: Type.MutableMap, data: DependedCode): String {
+		return "MutableMap<${type.key.accept(this, data)}, ${type.value.accept(this, data)}>"
 	}
 	
 	override fun visitNullableType(type: Type.Nullable, data: DependedCode): String {

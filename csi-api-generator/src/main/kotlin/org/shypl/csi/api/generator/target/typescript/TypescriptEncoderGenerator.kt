@@ -41,7 +41,19 @@ class TypescriptEncoderGenerator(
 		}
 	}
 	
+	override fun visitMutableListType(type: Type.MutableList, data: Code) {
+		writeDeclaration(type, data) {
+			line(writeCalls.visit(type, data, "v"))
+		}
+	}
+	
 	override fun visitMapType(type: Type.Map, data: Code) {
+		writeDeclaration(type, data) {
+			line(writeCalls.visit(type, data, "v"))
+		}
+	}
+	
+	override fun visitMutableMapType(type: Type.MutableMap, data: Code) {
 		writeDeclaration(type, data) {
 			line(writeCalls.visit(type, data, "v"))
 		}

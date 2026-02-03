@@ -32,9 +32,23 @@ class DefaultCoderNameVisitor(private val scope: CoderNameScopeVisitor) : TypeVi
 		return if (deep == 0) scope.visitGeneratedScope(name, data) else name
 	}
 	
+	override fun visitMutableListType(type: Type.MutableList, data: DependedCode): String {
+		++deep
+		val name = "MUTABLE_LIST_" + type.element.accept(this, data)
+		--deep
+		return if (deep == 0) scope.visitGeneratedScope(name, data) else name
+	}
+	
 	override fun visitMapType(type: Type.Map, data: DependedCode): String {
 		++deep
 		val name = "MAP_" + type.key.accept(this, data) + "__" + type.value.accept(this, data)
+		--deep
+		return if (deep == 0) scope.visitGeneratedScope(name, data) else name
+	}
+	
+	override fun visitMutableMapType(type: Type.MutableMap, data: DependedCode): String {
+		++deep
+		val name = "MUTABLE_MAP_" + type.key.accept(this, data) + "__" + type.value.accept(this, data)
 		--deep
 		return if (deep == 0) scope.visitGeneratedScope(name, data) else name
 	}

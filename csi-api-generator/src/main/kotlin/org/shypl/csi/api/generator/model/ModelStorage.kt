@@ -44,34 +44,35 @@ class ModelStorage(
 	
 	private fun saveServiceDescriptors(uniform: ModelUniform) {
 		model.services.forEach { service ->
-			uniform.serviceDescriptors.add(ModelUniform.ServiceDescriptor(
-				service.name.full,
-				service.lastMethodId,
-				service.closeable,
-				service.methods.map {
-					ModelUniform.ServiceDescriptor.Method(
-						it.id,
-						it.name,
-						it.suspend,
-						it.arguments.map { a ->
-							when (a) {
-								is Method.Argument.Value        -> ModelUniform.ServiceDescriptor.Method.Argument(a.name, a.type.name, null)
-								is Method.Argument.Subscription -> ModelUniform.ServiceDescriptor.Method.Argument(a.name, null, a.parameters.map { p ->
-									ModelUniform.Parameter(p.name, p.type.name)
-								})
+			uniform.serviceDescriptors.add(
+				ModelUniform.ServiceDescriptor(
+					service.name.full,
+					service.lastMethodId,
+					service.closeable,
+					service.methods.map {
+						ModelUniform.ServiceDescriptor.Method(
+							it.id,
+							it.name,
+							it.suspend,
+							it.arguments.map { a ->
+								when (a) {
+									is Method.Argument.Value        -> ModelUniform.ServiceDescriptor.Method.Argument(a.name, a.type.name, null)
+									is Method.Argument.Subscription -> ModelUniform.ServiceDescriptor.Method.Argument(a.name, null, a.parameters.map { p ->
+										ModelUniform.Parameter(p.name, p.type.name)
+									})
+								}
+							},
+							it.result.let { r ->
+								when (r) {
+									null                       -> null
+									is Method.Result.Value     -> r.type.name
+									is Method.Result.Service   -> "@" + r.className.full
+									Method.Result.Subscription -> "@"
+								}
 							}
-						},
-						it.result.let { r ->
-							when (r) {
-								null                       -> null
-								is Method.Result.Value     -> r.type.name
-								is Method.Result.Service   -> "@" + r.className.full
-								Method.Result.Subscription -> "@"
-							}
-						}
-					)
-				}
-			))
+						)
+					}
+				))
 		}
 	}
 	
@@ -82,15 +83,16 @@ class ModelStorage(
 			}
 			
 			override fun visitStructureEntity(entity: StructureEntity, data: ModelUniform) {
-				data.entities.structures.add(ModelUniform.Entities.StructureEntity(
-					entity.id,
-					entity.name.full,
-					entity.parent?.full,
-					entity.abstract,
-					entity.sealed,
-					entity.fields.map { ModelUniform.Entities.StructureEntity.Field(it.name, it.type.name) },
-					entity.children.map { it.full }
-				))
+				data.entities.structures.add(
+					ModelUniform.Entities.StructureEntity(
+						entity.id,
+						entity.name.full,
+						entity.parent?.full,
+						entity.abstract,
+						entity.sealed,
+						entity.fields.map { ModelUniform.Entities.StructureEntity.Field(it.name, it.type.name, it.mutable) },
+						entity.children.map { it.full }
+					))
 			}
 			
 			override fun visitConstantEntity(entity: ConstantEntity, data: ModelUniform) {
@@ -138,7 +140,8 @@ class ModelStorage(
 			val service = model.recoverServiceDescriptor(it.name.toClassName(), it.closeable)
 			
 			it.methods.forEach { m ->
-				service.recoverMethod(m.id, m.name,
+				service.recoverMethod(
+					m.id, m.name,
 					m.suspend,
 					m.arguments.map { a ->
 						if (a.type != null)
@@ -177,7 +180,8 @@ class ModelStorage(
 				e.fields.map {
 					StructureEntity.Field(
 						it.name,
-						it.type.toType()
+						it.type.toType(),
+						it.const
 					)
 				},
 				e.children.map { it.toClassName() }
@@ -196,7 +200,15 @@ class ModelStorage(
 		return when {
 			this in primitiveTypeValues.keys -> primitiveTypeValues.getValue(this)
 			endsWith('?')                    -> model.getNullableType(substring(0, length - 1).toType())
+			startsWith("MutableList<")       -> model.getMutableListType(substring(12, length - 1).toType())
 			startsWith("List<")              -> model.getListType(substring(5, length - 1).toType())
+			startsWith("MutableMap<")        -> indexOf(',').let {
+				model.getMutableMapType(
+					substring(11, it).toType(),
+					substring(it + 1, length - 1).toType()
+				)
+			}
+			
 			startsWith("Map<")               -> indexOf(',').let {
 				model.getMapType(
 					substring(4, it).toType(),

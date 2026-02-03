@@ -847,7 +847,44 @@ class ClientTypescriptApiGenerator(
 			}
 		}
 		
+		override fun visitMutableListType(type: Type.MutableList, data: LogCallVisitorData) {
+			if (type.element.let { it is Type.Primitive && !it.array }) {
+				val fn = if (data.sep) "logArraySep" else "logArray"
+				if (data.argName == null) {
+					data.code.line("lb.$fn(${data.argVal})")
+				}
+				else {
+					data.code.line("lb.${fn}Arg(\"${data.argName}\", ${data.argVal})")
+				}
+			}
+			else {
+				val fn = if (data.sep) "logSep" else "log"
+				val logger = defineLogName(type)
+				data.loggers.add(type)
+				data.code.addDependency(internalPackage.getName("_logging"), logger)
+				if (data.argName == null) {
+					data.code.line("lb.${fn}With(${data.argVal}, $logger)")
+				}
+				else {
+					data.code.line("lb.${fn}WithArg(\"${data.argName}\", ${data.argVal}, $logger)")
+				}
+			}
+		}
+		
 		override fun visitMapType(type: Type.Map, data: LogCallVisitorData) {
+			val fn = if (data.sep) "logSep" else "log"
+			val logger = defineLogName(type)
+			data.loggers.add(type)
+			data.code.addDependency(internalPackage.getName("_logging"), logger)
+			if (data.argName == null) {
+				data.code.line("lb.${fn}With(${data.argVal}, $logger)")
+			}
+			else {
+				data.code.line("lb.${fn}WithArg(\"${data.argName}\", ${data.argVal}, $logger)")
+			}
+		}
+		
+		override fun visitMutableMapType(type: Type.MutableMap, data: LogCallVisitorData) {
 			val fn = if (data.sep) "logSep" else "log"
 			val logger = defineLogName(type)
 			data.loggers.add(type)
@@ -909,11 +946,19 @@ class ClientTypescriptApiGenerator(
 		}
 		
 		override fun visitListType(type: Type.List, data: Unit): String {
-			return "list_" + type.element.accept(this, data)
+			return "LIST_" + type.element.accept(this, data)
+		}
+		
+		override fun visitMutableListType(type: Type.MutableList, data: Unit): String {
+			return "MUTABLE_LIST_" + type.element.accept(this, data)
 		}
 		
 		override fun visitMapType(type: Type.Map, data: Unit): String {
 			return "MAP_" + type.key.accept(this, data) + "__" + type.value.accept(this, data)
+		}
+		
+		override fun visitMutableMapType(type: Type.MutableMap, data: Unit): String {
+			return "MUTABLE_MAP_" + type.key.accept(this, data) + "__" + type.value.accept(this, data)
 		}
 		
 		override fun visitNullableType(type: Type.Nullable, data: Unit): String {
@@ -933,7 +978,23 @@ class ClientTypescriptApiGenerator(
 			data.code.line("lb.logArrayWith(v, $logger)")
 		}
 		
+		override fun visitMutableListType(type: Type.MutableList, data: GenerateLoggingVisitorData) {
+			data.loggers.add(type.element)
+			val logger = defineLogName(type.element)
+			data.code.addDependency(internalPackage.getName("_logging"), logger)
+			data.code.line("lb.logArrayWith(v, $logger)")
+		}
+		
 		override fun visitMapType(type: Type.Map, data: GenerateLoggingVisitorData) {
+			data.loggers.add(type.key)
+			data.loggers.add(type.value)
+			val loggerK = defineLogName(type.key)
+			val loggerV = defineLogName(type.value)
+			data.code.addDependency(internalPackage.getName("_logging"), loggerK, loggerV)
+			data.code.line("lb.logMapWith(v, $loggerK, $loggerV)")
+		}
+		
+		override fun visitMutableMapType(type: Type.MutableMap, data: GenerateLoggingVisitorData, ) {
 			data.loggers.add(type.key)
 			data.loggers.add(type.value)
 			val loggerK = defineLogName(type.key)

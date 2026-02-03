@@ -27,6 +27,14 @@ class DefaultReadCallVisitor(private val encoderNaming: TypeVisitor<String, Depe
 		return "readList(${type.element.accept(encoderNaming, data)})"
 	}
 	
+	override fun visitMutableListType(type: Type.MutableList, data: DependedCode): String {
+		return "readList(${type.element.accept(encoderNaming, data)})"
+	}
+	
+	override fun visitMutableMapType(type: Type.MutableMap, data: DependedCode): String {
+		return "readMap(${type.key.accept(encoderNaming, data)}, ${type.value.accept(encoderNaming, data)})"
+	}
+	
 	override fun visitMapType(type: Type.Map, data: DependedCode): String {
 		return "readMap(${type.key.accept(encoderNaming, data)}, ${type.value.accept(encoderNaming, data)})"
 	}

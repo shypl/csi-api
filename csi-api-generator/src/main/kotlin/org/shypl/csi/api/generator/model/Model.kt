@@ -21,7 +21,9 @@ class Model : Compatible() {
 	private val cacheNullableTypes = mutableKeyedSetOf(Type.Nullable::original)
 	private val cacheEntityTypes = mutableKeyedSetOf(Type.Entity::className)
 	private val cacheListTypes = mutableKeyedSetOf(Type.List::element)
+	private val cacheMutableListTypes = mutableKeyedSetOf(Type.MutableList::element)
 	private val cacheMapTypes = hashMapOf<Type, MutableKeyedSet<Type, Type.Map>>()
+	private val cacheMutableMapTypes = hashMapOf<Type, MutableKeyedSet<Type, Type.MutableMap>>()
 	
 	val entities: Collection<Entity>
 		get() = _entities
@@ -41,10 +43,20 @@ class Model : Compatible() {
 		return cacheListTypes.getOrAdd(element, Type::List)
 	}
 	
+	fun getMutableListType(element: Type): Type.MutableList {
+		return cacheMutableListTypes.getOrAdd(element, Type::MutableList)
+	}
+	
 	fun getMapType(key: Type, value: Type): Type.Map {
 		return cacheMapTypes
 			.getOrPut(key) { mutableKeyedSetOf(Type.Map::value) }
 			.getOrAdd(value) { Type.Map(key, value) }
+	}
+	
+	fun getMutableMapType(key: Type, value: Type): Type.MutableMap {
+		return cacheMutableMapTypes
+			.getOrPut(key) { mutableKeyedSetOf(Type.MutableMap::value) }
+			.getOrAdd(value) { Type.MutableMap(key, value) }
 	}
 	
 	fun getClassName(name: String): ClassName {

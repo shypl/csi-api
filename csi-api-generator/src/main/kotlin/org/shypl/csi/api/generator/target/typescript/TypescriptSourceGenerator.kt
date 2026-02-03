@@ -41,7 +41,12 @@ class TypescriptSourceGenerator(
 				ident {
 					fields.forEach {
 						line {
-							if (entity.isFieldOwner(it.name)) append("readonly ")
+							if (entity.isFieldOwner(it.name)) {
+								append("public ")
+								if (!it.mutable) {
+									append("readonly ")
+								}
+							}
 							append(it.name).append(": ").append(it.type.accept(typeNames, data)).append(",")
 						}
 					}

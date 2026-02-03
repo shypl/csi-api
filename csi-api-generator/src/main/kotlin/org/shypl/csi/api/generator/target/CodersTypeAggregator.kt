@@ -24,7 +24,16 @@ class CodersTypeAggregator(private val model: Model) : TypeVisitor<Unit, Mutable
 			type.element.accept(this@CodersTypeAggregator, data)
 		}
 		
+		override fun visitMutableListType(type: Type.MutableList, data: MutableSet<Type>) {
+			type.element.accept(this@CodersTypeAggregator, data)
+		}
+		
 		override fun visitMapType(type: Type.Map, data: MutableSet<Type>) {
+			type.key.accept(this@CodersTypeAggregator, data)
+			type.value.accept(this@CodersTypeAggregator, data)
+		}
+		
+		override fun visitMutableMapType(type: Type.MutableMap, data: MutableSet<Type>) {
 			type.key.accept(this@CodersTypeAggregator, data)
 			type.value.accept(this@CodersTypeAggregator, data)
 		}
@@ -50,7 +59,20 @@ class CodersTypeAggregator(private val model: Model) : TypeVisitor<Unit, Mutable
 		}
 	}
 	
+	override fun visitMutableListType(type: Type.MutableList, data: MutableSet<Type>) {
+		if (data.add(type)) {
+			type.element.accept(this, data)
+		}
+	}
+	
 	override fun visitMapType(type: Type.Map, data: MutableSet<Type>) {
+		if (data.add(type)) {
+			type.key.accept(this, data)
+			type.value.accept(this, data)
+		}
+	}
+	
+	override fun visitMutableMapType(type: Type.MutableMap, data: MutableSet<Type>) {
 		if (data.add(type)) {
 			type.key.accept(this, data)
 			type.value.accept(this, data)

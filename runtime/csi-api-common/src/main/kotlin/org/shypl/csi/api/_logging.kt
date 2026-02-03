@@ -4,16 +4,17 @@ package org.shypl.csi.api
 
 import org.shypl.tool.lang.toHexString
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 fun StringBuilder.log(value: Boolean): StringBuilder = append(value)
 fun StringBuilder.log(value: Byte): StringBuilder = append(value)
 fun StringBuilder.log(value: Int): StringBuilder = append(value)
 fun StringBuilder.log(value: Double): StringBuilder = append(value)
 fun StringBuilder.log(value: Long): StringBuilder = append(value)
-fun StringBuilder.log(value: String): StringBuilder = append(value)
-fun StringBuilder.log(value: ZonedDateTime): StringBuilder = append(value)
+fun StringBuilder.log(value: String): StringBuilder = append(value.replace("\r\n", "\n").replace("\n", "\\n"))
+fun StringBuilder.log(value: ZonedDateTime): StringBuilder = append(value.format(DateTimeFormatter.ISO_INSTANT))
 fun StringBuilder.log(value: BooleanArray) = value.joinTo(this, SEP, "[", "]")
-fun StringBuilder.log(value: ByteArray) = value.toHexString(this)
+fun StringBuilder.log(value: ByteArray): StringBuilder = if (value.size > 128) append("ByteArray(").append(value.size).append(")") else value.toHexString(this)
 fun StringBuilder.log(value: IntArray) = value.joinTo(this, SEP, "[", "]")
 fun StringBuilder.log(value: DoubleArray) = value.joinTo(this, SEP, "[", "]")
 fun StringBuilder.log(value: LongArray) = value.joinTo(this, SEP, "[", "]")

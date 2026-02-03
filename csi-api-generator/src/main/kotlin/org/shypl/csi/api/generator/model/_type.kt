@@ -47,12 +47,30 @@ sealed interface Type {
 		}
 	}
 	
+	data class MutableList(val element: Type) : Type {
+		override val name: String
+			get() = "MutableList<${element.name}>"
+		
+		override fun <R, D> accept(visitor: TypeVisitor<R, D>, data: D): R {
+			return visitor.visitMutableListType(this, data)
+		}
+	}
+	
 	data class Map(val key: Type, val value: Type) : Type {
 		override val name: String
 			get() = "Map<${key.name},${value.name}>"
 		
 		override fun <R, D> accept(visitor: TypeVisitor<R, D>, data: D): R {
 			return visitor.visitMapType(this, data)
+		}
+	}
+	
+	data class MutableMap(val key: Type, val value: Type) : Type {
+		override val name: String
+			get() = "MutableMap<${key.name},${value.name}>"
+		
+		override fun <R, D> accept(visitor: TypeVisitor<R, D>, data: D): R {
+			return visitor.visitMutableMapType(this, data)
 		}
 	}
 	
@@ -71,6 +89,8 @@ interface TypeVisitor<R, D> {
 	fun visitPrimitiveType(type: Type.Primitive, data: D): R
 	fun visitEntityType(type: Type.Entity, data: D): R
 	fun visitListType(type: Type.List, data: D): R
+	fun visitMutableListType(type: Type.MutableList, data: D): R
 	fun visitMapType(type: Type.Map, data: D): R
+	fun visitMutableMapType(type: Type.MutableMap, data: D): R
 	fun visitNullableType(type: Type.Nullable, data: D): R
 }

@@ -42,7 +42,16 @@ abstract class AbstractCodersGenerator<C: CodeStorage>(
 			data.add(type.element)
 		}
 		
+		override fun visitMutableListType(type: Type.MutableList, data: MutableSet<Type>) {
+			data.add(type.element)
+		}
+		
 		override fun visitMapType(type: Type.Map, data: MutableSet<Type>) {
+			data.add(type.key)
+			data.add(type.value)
+		}
+		
+		override fun visitMutableMapType(type: Type.MutableMap, data: MutableSet<Type>) {
 			data.add(type.key)
 			data.add(type.value)
 		}

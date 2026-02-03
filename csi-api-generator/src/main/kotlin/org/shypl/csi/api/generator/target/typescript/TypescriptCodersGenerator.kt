@@ -64,7 +64,16 @@ class TypescriptCodersGenerator(
 				type.element.accept(this, data)
 			}
 			
+			override fun visitMutableListType(type: Type.MutableList, data: MutableSet<Entity>) {
+				type.element.accept(this, data)
+			}
+			
 			override fun visitMapType(type: Type.Map, data: MutableSet<Entity>) {
+				type.key.accept(this, data)
+				type.value.accept(this, data)
+			}
+			
+			override fun visitMutableMapType(type: Type.MutableMap, data: MutableSet<Entity>) {
 				type.key.accept(this, data)
 				type.value.accept(this, data)
 			}

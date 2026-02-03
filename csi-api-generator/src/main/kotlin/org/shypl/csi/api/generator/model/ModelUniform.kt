@@ -55,7 +55,8 @@ class ModelUniform {
 		) {
 			class Field(
 				val name: String,
-				val type: String
+				val type: String,
+				val const: Boolean
 			)
 		}
 		

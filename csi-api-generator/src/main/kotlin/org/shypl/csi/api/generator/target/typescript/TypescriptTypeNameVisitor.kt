@@ -37,8 +37,16 @@ class TypescriptTypeNameVisitor(private val libPackage: ClassPackage) : TypeVisi
 		return "ReadonlyArray<${type.element.accept(this, data)}>"
 	}
 	
+	override fun visitMutableListType(type: Type.MutableList, data: DependedCode): String {
+		return "Array<${type.element.accept(this, data)}>"
+	}
+	
 	override fun visitMapType(type: Type.Map, data: DependedCode): String {
 		return "ReadonlyMap<${type.key.accept(this, data)}, ${type.value.accept(this, data)}>"
+	}
+	
+	override fun visitMutableMapType(type: Type.MutableMap, data: DependedCode): String {
+		return "Map<${type.key.accept(this, data)}, ${type.value.accept(this, data)}>"
 	}
 	
 	override fun visitNullableType(type: Type.Nullable, data: DependedCode): String {

@@ -99,6 +99,7 @@ class StructureEntity(
 	data class Field(
 		val name: String,
 		val type: Type,
+		val mutable: Boolean
 	)
 }
 

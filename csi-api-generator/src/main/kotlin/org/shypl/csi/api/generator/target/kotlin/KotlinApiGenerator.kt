@@ -744,7 +744,15 @@ abstract class KotlinApiGenerator(
 			visitGenerated(type.element, data)
 		}
 		
+		override fun visitMutableListType(type: Type.MutableList, data: LogCallVisitorData) {
+			visitGenerated(type.element, data)
+		}
+		
 		override fun visitMapType(type: Type.Map, data: LogCallVisitorData) {
+			visitGenerated(type, data)
+		}
+		
+		override fun visitMutableMapType(type: Type.MutableMap, data: LogCallVisitorData) {
 			visitGenerated(type, data)
 		}
 		
@@ -778,11 +786,19 @@ abstract class KotlinApiGenerator(
 		}
 		
 		override fun visitListType(type: Type.List, data: Unit): String {
-			return "list_" + type.element.accept(this, data)
+			return "LIST_" + type.element.accept(this, data)
+		}
+		
+		override fun visitMutableListType(type: Type.MutableList, data: Unit): String {
+			return "MUTABLE_LIST_" + type.element.accept(this, data)
 		}
 		
 		override fun visitMapType(type: Type.Map, data: Unit): String {
 			return "MAP_" + type.key.accept(this, data) + "__" + type.value.accept(this, data)
+		}
+		
+		override fun visitMutableMapType(type: Type.MutableMap, data: Unit): String {
+			return "MUTABLE_MAP_" + type.key.accept(this, data) + "__" + type.value.accept(this, data)
 		}
 		
 		override fun visitNullableType(type: Type.Nullable, data: Unit): String {
@@ -802,7 +818,20 @@ abstract class KotlinApiGenerator(
 			data.code.line("log(it, ${defineLogName(type.element)})")
 		}
 		
+		override fun visitMutableListType(type: Type.MutableList, data: GenerateLoggingVisitorData) {
+			data.code.addDependency("org.shypl.csi.api/log")
+			data.loggers.add(type.element)
+			data.code.line("log(it, ${defineLogName(type.element)})")
+		}
+		
 		override fun visitMapType(type: Type.Map, data: GenerateLoggingVisitorData) {
+			data.code.addDependency("org.shypl.csi.api/log")
+			data.loggers.add(type.key)
+			data.loggers.add(type.value)
+			data.code.line("log(it, ${defineLogName(type.key)}, ${defineLogName(type.value)})")
+		}
+		
+		override fun visitMutableMapType(type: Type.MutableMap, data: GenerateLoggingVisitorData) {
 			data.code.addDependency("org.shypl.csi.api/log")
 			data.loggers.add(type.key)
 			data.loggers.add(type.value)

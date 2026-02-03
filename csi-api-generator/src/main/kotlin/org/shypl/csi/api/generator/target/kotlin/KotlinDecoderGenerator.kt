@@ -37,7 +37,19 @@ class KotlinDecoderGenerator(
 		}
 	}
 	
+	override fun visitMutableListType(type: Type.MutableList, data: Code) {
+		writeDeclaration(type, data) {
+			line(type.accept(readCalls, data))
+		}
+	}
+	
 	override fun visitMapType(type: Type.Map, data: Code) {
+		writeDeclaration(type, data) {
+			line(type.accept(readCalls, data))
+		}
+	}
+	
+	override fun visitMutableMapType(type: Type.MutableMap, data: Code) {
 		writeDeclaration(type, data) {
 			line(type.accept(readCalls, data))
 		}
